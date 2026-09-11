@@ -1,7 +1,5 @@
 package com.nhatquang.high_concurrency_ticketing_engine.entity;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,27 +12,27 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "events")
-@Getter
+@Entity 
+@Table(name = "users")
+@Getter 
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Event {
+public class User {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @Column(nullable = false, unique = true)
+    private String username;
 
-    @Column(name = "start_time")
-    private LocalDateTime startTime;
+    @Column(nullable = false)
+    private String password;
 
-    @Column(name = "end_time")
-    private LocalDateTime endTime;
-    
-    private String status; //UPCOMING, ONGOING, ENDED
- 
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    private String role;
 }
