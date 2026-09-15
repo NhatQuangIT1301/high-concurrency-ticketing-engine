@@ -2,9 +2,15 @@ package com.nhatquang.high_concurrency_ticketing_engine.service;
 
 import java.util.Collections;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.nhatquang.high_concurrency_ticketing_engine.config.RabbitMQConfig;
+import com.nhatquang.high_concurrency_ticketing_engine.dto.OrderMessage;
+import com.nhatquang.high_concurrency_ticketing_engine.entity.User;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +22,10 @@ public class TicketService {
     
     private final RedisTemplate<String, Object> redisTemplate;
     private final DefaultRedisScript<Long> decrementStockScript;
+    private final RabbitTemplate rabbitTemplate; // Inject thêm RabbitTemplate
 
     public boolean reserveTicketRedis(Long ticketId, int quantity) {
+        // 1. Trừ tồn kho trên Redis
         // Tạo Redis Key chuẩn (Ví dụ: ticket:1:stock)
         String stockKey = "ticket:" + ticketId + ":stock";
 
@@ -40,6 +48,28 @@ public class TicketService {
         }
 
         log.info("Trừ thành công {} vé cho Ticket ID: {}", quantity, ticketId);
+
+        // 2. Lấy thông tin User hiện tại từ SecurityContext
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = currentUser.getId();
+
+        // 3. Đẩy message vào RabbitMQ để xử lý bất đồng bộ
+        OrderMessage message = new OrderMessage(userId, ticketId, quantity);
+
+        try {
+            rabbitTemplate.convertAndSend(
+                RabbitMQConfig.ORDER_EXCHANGE,
+                RabbitMQConfig.ORDER_ROUTING_KEY,
+                message
+            );
+            log.info("Đã gửi message tạo đơn hàng vào RabbitMQ cho User ID: {}, Ticket ID: {}", userId, ticketId);
+        } catch (Exception e) {
+            // Lưu ý kiến trúc: Nếu đẩy message lỗi, ta phải có cơ chế Retry hoặc lưu log để bồi hoàn (Compensating Transaction)
+            // Ở phiên bản hiện tại, log lại lỗi (Dead Letter/Fallback xử lý sau)
+            log.error("Lỗi khi gửi message vào RabbitMQ cho Ticket ID: {}", ticketId, e);
+            throw new RuntimeException("Lỗi hệ thống: Không thể xử lý đơn hàng lúc này.");
+        }
+
         return true; //Trừ vé thành công
     }
 }
