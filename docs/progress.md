@@ -33,5 +33,11 @@
 *   **Message Converter:** Áp dụng `Jackson2JsonMessageConverter` để serialize dữ liệu thành định dạng JSON dễ đọc, tối ưu cho việc debug.
 *   **Data Transfer Object:** Sử dụng Java `record` (`OrderMessage`) để định nghĩa DTO mang dữ liệu an toàn và ngắn gọn.
 *   **Asynchronous Flow:** Tái cấu trúc `TicketService`, trích xuất thông tin User từ `SecurityContext` và đẩy message vào Queue thông qua `RabbitTemplate` ngay sau khi Redis trừ vé thành công, đảm bảo API phản hồi cực nhanh (Low Latency).
+   
+## Giai đoạn 6: Xây dựng Worker xử lý Đơn hàng (Issue 6)
+*   **Database Repository:** Khởi tạo `OrderRepository` để tương tác với bảng `orders`.
+*   **Business Logic:** Xây dựng `OrderService` chịu trách nhiệm lưu đơn hàng. Tối ưu hóa hiệu suất bằng cách map trực tiếp `userId` và `ticketId` từ Message thay vì query object.
+*   **Message Listener:** Triển khai `OrderMessageListener` sử dụng `@RabbitListener` túc trực tại `order.queue`, hứng message JSON và gọi Service lưu xuống PostgreSQL.
+*   **Entity Optimization:** Tích hợp `@CreationTimestamp` của Hibernate để tự động hóa việc ghi nhận thời gian tạo đơn hàng (Audit Time) chuẩn xác.
 ---
 *Ghi chú: File này được tạo ra nhằm mục đích theo dõi tiến độ và cung cấp bối cảnh (context) cho các phiên làm việc tiếp theo.*
