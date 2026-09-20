@@ -26,7 +26,6 @@ public class OrderService {
             
             orderRepository.save(order);
             log.info("Lưu đơn hàng thành công vào DB. User ID: {}, Ticket ID: {}", message.userId(), message.ticketId());
-
         } catch (Exception e) {
             log.error("Lỗi khi lưu đơn hàng vào DB: {}", e.getMessage(), e);
             throw e;

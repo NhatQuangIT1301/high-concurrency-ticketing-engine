@@ -26,6 +26,17 @@ public class RedisConfig {
         return template;
     }
 
+    //Cộng vé
+    @Bean
+    public DefaultRedisScript<Long> incrementStockScript() {
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+        // Nạp file script hoàn vé
+        redisScript.setLocation(new ClassPathResource("scripts/increment_stock.lua"));
+        redisScript.setResultType(Long.class);
+        return redisScript;
+    }
+
+    //Trừ vé
     @Bean
     public DefaultRedisScript<Long> decrementStockScript() {
         DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();

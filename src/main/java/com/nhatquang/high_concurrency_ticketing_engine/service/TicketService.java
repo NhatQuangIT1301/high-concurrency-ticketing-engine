@@ -22,6 +22,7 @@ public class TicketService {
     
     private final RedisTemplate<String, Object> redisTemplate;
     private final DefaultRedisScript<Long> decrementStockScript;
+    private final DefaultRedisScript<Long> incrementStockScript; // Inject thêm script hoàn vé
     private final RabbitTemplate rabbitTemplate; // Inject thêm RabbitTemplate
 
     public boolean reserveTicketRedis(Long ticketId, int quantity) {
@@ -71,5 +72,22 @@ public class TicketService {
         }
 
         return true; //Trừ vé thành công
+    }
+
+    public void refundTicket(Long ticketId, int quantity) {
+        String stockKey = "ticket:" + ticketId + ":stock";
+
+        Long result = redisTemplate.execute(
+            incrementStockScript, 
+            Collections.singletonList(stockKey), 
+            String.valueOf(quantity)
+        );
+
+        if (result == null || result == -1) {
+            log.error("CẢNH BÁO: Kho vé không tồn tại khi cố gắng hoàn {} vé cho Ticket ID: {}", quantity, ticketId);
+            // Ở thực tế, ta sẽ gửi cảnh báo Telegram/Email cho Admin xử lý tay
+        } else {
+            log.info("Hoàn thành công {} vé vào Redis cho Ticket ID: {}", quantity, ticketId);
+        }
     }
 }
