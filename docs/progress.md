@@ -39,5 +39,10 @@
 *   **Business Logic:** Xây dựng `OrderService` chịu trách nhiệm lưu đơn hàng. Tối ưu hóa hiệu suất bằng cách map trực tiếp `userId` và `ticketId` từ Message thay vì query object.
 *   **Message Listener:** Triển khai `OrderMessageListener` sử dụng `@RabbitListener` túc trực tại `order.queue`, hứng message JSON và gọi Service lưu xuống PostgreSQL.
 *   **Entity Optimization:** Tích hợp `@CreationTimestamp` của Hibernate để tự động hóa việc ghi nhận thời gian tạo đơn hàng (Audit Time) chuẩn xác.
+   
+## Giai đoạn 7: Xử lý Lỗi & Đảm bảo Toàn vẹn Dữ liệu (Issue 7)
+*   **Retry Mechanism:** Kích hoạt cấu hình `spring.rabbitmq.listener.simple.retry` trong `application.properties`, thiết lập cơ chế tự động thử lại 3 lần với backoff multiplier nhằm chống ngập lụt lỗi tạm thời.
+*   **Dead Letter Queue (DLQ):** Xây dựng cấu trúc DLX (`order.dlx`) và DLQ (`order.dlq`) trong `RabbitMQConfig`.
+*   **Zero Data Loss:** Tích hợp DLX vào `order.queue` bằng `QueueBuilder`, đảm bảo các thông điệp đặt vé không thể xử lý sẽ được lưu trữ an toàn để đối soát và bồi hoàn sau này.
 ---
 *Ghi chú: File này được tạo ra nhằm mục đích theo dõi tiến độ và cung cấp bối cảnh (context) cho các phiên làm việc tiếp theo.*
