@@ -22,9 +22,8 @@ public class OrderService {
         log.info("Bắt đầu xử lý tạo đơn hàng cho User: {}, Ticket: {}", message.userId(), message.ticketId());
 
         try {
-            // Build đối tượng Order (Giả định em dùng Builder pattern trong Entity Order)
             Order order = Order.builder().userId(message.userId()).ticketId(message.ticketId()).quantity(message.quantity()).status("COMPLETE").build();
-
+            
             orderRepository.save(order);
             log.info("Lưu đơn hàng thành công vào DB. User ID: {}, Ticket ID: {}", message.userId(), message.ticketId());
 
