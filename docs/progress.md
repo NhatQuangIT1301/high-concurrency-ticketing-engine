@@ -44,5 +44,10 @@
 *   **Retry Mechanism:** Kích hoạt cấu hình `spring.rabbitmq.listener.simple.retry` trong `application.properties`, thiết lập cơ chế tự động thử lại 3 lần với backoff multiplier nhằm chống ngập lụt lỗi tạm thời.
 *   **Dead Letter Queue (DLQ):** Xây dựng cấu trúc DLX (`order.dlx`) và DLQ (`order.dlq`) trong `RabbitMQConfig`.
 *   **Zero Data Loss:** Tích hợp DLX vào `order.queue` bằng `QueueBuilder`, đảm bảo các thông điệp đặt vé không thể xử lý sẽ được lưu trữ an toàn để đối soát và bồi hoàn sau này.
+
+## Giai đoạn 8: Giao dịch Bù trừ - Hoàn vé tự động (Issue 8)
+*   **Saga Pattern (Compensating Transaction):** Triển khai Worker thứ hai (`RefundMessageListener`) chuyên biệt để lắng nghe các đơn hàng lỗi từ Dead Letter Queue (`order.dlq`).
+*   **Redis Lua Script:** Viết và nạp kịch bản `increment_stock.lua` đảm bảo tính nguyên tử (atomic) khi hoàn vé.
+*   **Zero Data Loss & No Overselling:** Ngăn chặn triệt để tình trạng "thất thoát vé" bằng cách cộng trả lại (+quantity) số vé vào Redis ngay khi phát hiện giao dịch lưu Database thất bại.
 ---
 *Ghi chú: File này được tạo ra nhằm mục đích theo dõi tiến độ và cung cấp bối cảnh (context) cho các phiên làm việc tiếp theo.*
