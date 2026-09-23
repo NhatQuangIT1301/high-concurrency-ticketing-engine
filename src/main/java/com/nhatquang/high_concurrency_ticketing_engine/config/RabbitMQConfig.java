@@ -1,7 +1,11 @@
 package com.nhatquang.high_concurrency_ticketing_engine.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.CustomExchange;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
@@ -24,6 +28,11 @@ public class RabbitMQConfig {
     public static final String ORDER_DLQ = "order.dlq";
     public static final String ORDER_DLX = "order.dlx";
     public static final String ORDER_DLQ_ROUTING_KEY = "order.dlq.routing.key";
+
+    // Khai báo cho Order Delay Queue
+    public static final String ORDER_DELAY_QUEUE = "order.delay.queue";
+    public static final String ORDER_DELAY_EXCHANGE = "order.delay.exchange";
+    public static final String ORDER_DELAY_ROUTING_KEY = "order.delay.routing.key";
 
     // --- CẤU HÌNH DEAD LETTER QUEUE (HÀNG ĐỢI CHỨA LỖI) ---
 
@@ -62,6 +71,31 @@ public class RabbitMQConfig {
     @Bean
     public Binding binding(Queue orderQueue, DirectExchange orderExchange) {
         return BindingBuilder.bind(orderQueue).to(orderExchange).with(ORDER_ROUTING_KEY);
+    }
+
+    // --- CẤU HÌNH CHO DELAYED MESSAGE (ISSUE 9) ---
+    @Bean
+    public Queue orderDelayQueue() {
+        return new Queue(ORDER_DELAY_QUEUE, true);
+    }
+
+    @Bean
+    public CustomExchange orderDelayExchange() {
+        Map<String, Object> args = new HashMap<>();
+        // Khai báo kiểu exchange nội tại mà plugin sẽ sử dụng để định tuyến
+        args.put("x-delayed-type", "direct");
+
+        // "x-delayed-message" là tham số bắt buộc để kích hoạt plugin của RabbitMQ
+        return new CustomExchange(ORDER_DELAY_EXCHANGE, "x-delayed-message", true, false, args);
+    }
+
+    @Bean
+    public Binding delayBinding() {
+        // Dùng phương thức noargs() vì CustomExchange trả về kiểu dữ liệu hơi khác một chút
+        return BindingBuilder.bind(orderDelayQueue())
+            .to(orderDelayExchange())
+            .with(ORDER_DELAY_ROUTING_KEY)
+            .noargs();
     }
 
     // --- CẤU HÌNH MESSAGE CONVERTER ---

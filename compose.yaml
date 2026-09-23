@@ -18,7 +18,9 @@ services:
     restart: unless-stopped
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.rabbitmq
     container_name: ticket_rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest

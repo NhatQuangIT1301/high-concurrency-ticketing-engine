@@ -1,6 +1,7 @@
 package com.nhatquang.high_concurrency_ticketing_engine.service;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -55,14 +56,29 @@ public class TicketService {
         Long userId = currentUser.getId();
 
         // 3. Đẩy message vào RabbitMQ để xử lý bất đồng bộ
-        OrderMessage message = new OrderMessage(userId, ticketId, quantity);
+        UUID orderId = UUID.randomUUID();
+        OrderMessage message = new OrderMessage(orderId, userId, ticketId, quantity);
 
         try {
+            // TIN NHẮN 1: Đẩy vào Queue chính để Worker lưu đơn hàng (Trạng thái PENDING)
             rabbitTemplate.convertAndSend(
                 RabbitMQConfig.ORDER_EXCHANGE,
                 RabbitMQConfig.ORDER_ROUTING_KEY,
                 message
             );
+
+            rabbitTemplate.convertAndSend(
+                "order.delay.exchange",
+                "order.delay.routing.key",
+                message, 
+                msg -> {
+                    // Set độ trễ: 15 phút = 15 * 60 * 1000 mili-giây
+                    // Để test nhanh ở local, em có thể sửa thành 10000 (10 giây) để xem kết quả ngay
+                    msg.getMessageProperties().setDelayLong(10000L);
+                    return msg;
+                }
+            );
+
             log.info("Đã gửi message tạo đơn hàng vào RabbitMQ cho User ID: {}, Ticket ID: {}", userId, ticketId);
         } catch (Exception e) {
             // Lưu ý kiến trúc: Nếu đẩy message lỗi, ta phải có cơ chế Retry hoặc lưu log để bồi hoàn (Compensating Transaction)
