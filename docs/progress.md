@@ -49,5 +49,10 @@
 *   **Saga Pattern (Compensating Transaction):** Triển khai Worker thứ hai (`RefundMessageListener`) chuyên biệt để lắng nghe các đơn hàng lỗi từ Dead Letter Queue (`order.dlq`).
 *   **Redis Lua Script:** Viết và nạp kịch bản `increment_stock.lua` đảm bảo tính nguyên tử (atomic) khi hoàn vé.
 *   **Zero Data Loss & No Overselling:** Ngăn chặn triệt để tình trạng "thất thoát vé" bằng cách cộng trả lại (+quantity) số vé vào Redis ngay khi phát hiện giao dịch lưu Database thất bại.
+   
+## Giai đoạn 9: Giữ chỗ & Hủy vé tự động (Issue 9)
+*   **Delayed Messaging Infrastructure:** Cấu hình `Dockerfile` riêng cho RabbitMQ để cài đặt và kích hoạt plugin `rabbitmq_delayed_message_exchange`. 
+*   **Custom Exchange:** Cấu hình `CustomExchange` (x-delayed-message) trong Spring Boot để điều phối tin nhắn có độ trễ (x-delay header).
+*   **Timeout & Cancellation Logic:** Chuyển giao quyền sinh UUID cho Service đầu nguồn. Đẩy thông điệp hẹn giờ song song với thông điệp tạo đơn. Xây dựng `OrderTimeoutListener` để tự động chuyển trạng thái đơn hàng sang `CANCELED` và hoàn vé kho Redis nếu không phát sinh thanh toán.
 ---
 *Ghi chú: File này được tạo ra nhằm mục đích theo dõi tiến độ và cung cấp bối cảnh (context) cho các phiên làm việc tiếp theo.*

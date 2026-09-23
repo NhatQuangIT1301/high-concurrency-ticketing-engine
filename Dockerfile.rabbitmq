@@ -1,0 +1,11 @@
+# Sử dụng base image hiện tại của em
+FROM rabbitmq:3.13-management-alpine
+
+# Cài đặt curl để tải file
+RUN apk add --no-cache curl
+
+# Tải plugin Delayed Message (Phiên bản 3.13.0 khớp với RabbitMQ 3.13)
+RUN curl -L https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v3.13.0/rabbitmq_delayed_message_exchange-3.13.0.ez > $RABBITMQ_HOME/plugins/rabbitmq_delayed_message_exchange-3.13.0.ez
+
+# Kích hoạt plugin
+RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange
