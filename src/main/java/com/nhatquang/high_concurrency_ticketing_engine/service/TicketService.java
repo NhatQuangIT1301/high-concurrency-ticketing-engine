@@ -74,7 +74,7 @@ public class TicketService {
                 msg -> {
                     // Set độ trễ: 15 phút = 15 * 60 * 1000 mili-giây
                     // Để test nhanh ở local, em có thể sửa thành 10000 (10 giây) để xem kết quả ngay
-                    msg.getMessageProperties().setDelayLong(10000L);
+                    msg.getMessageProperties().setDelayLong(15 * 60 * 1000L);
                     return msg;
                 }
             );

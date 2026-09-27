@@ -1,15 +1,22 @@
 package com.nhatquang.high_concurrency_ticketing_engine.config;
 
+import java.time.Duration;
+
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration 
@@ -24,6 +31,20 @@ public class RedisConfig {
         // Định dạng Value
         template.setValueSerializer(new GenericToStringSerializer<>(Object.class));
         return template;
+    }
+
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        // Cấu hình Cache: Thời gian sống (TTL) mặc định là 60 phút, và format dữ liệu thành JSON
+        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration
+            .defaultCacheConfig()
+            .entryTtl(Duration.ofMinutes(60))
+            .serializeValuesWith(
+                RedisSerializationContext.SerializationPair
+                .fromSerializer(RedisSerializer.json())
+            );
+
+        return RedisCacheManager.builder(connectionFactory).cacheDefaults(cacheConfig).build();
     }
 
     //Cộng vé

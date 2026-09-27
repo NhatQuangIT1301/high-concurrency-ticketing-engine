@@ -54,5 +54,9 @@
 *   **Delayed Messaging Infrastructure:** Cấu hình `Dockerfile` riêng cho RabbitMQ để cài đặt và kích hoạt plugin `rabbitmq_delayed_message_exchange`. 
 *   **Custom Exchange:** Cấu hình `CustomExchange` (x-delayed-message) trong Spring Boot để điều phối tin nhắn có độ trễ (x-delay header).
 *   **Timeout & Cancellation Logic:** Chuyển giao quyền sinh UUID cho Service đầu nguồn. Đẩy thông điệp hẹn giờ song song với thông điệp tạo đơn. Xây dựng `OrderTimeoutListener` để tự động chuyển trạng thái đơn hàng sang `CANCELED` và hoàn vé kho Redis nếu không phát sinh thanh toán.
+
+## Giai đoạn 10: Thanh toán & Tối ưu Read API bằng Cache (Issue 10)
+*   **Caching:** Tích hợp Spring Cache với `RedisCacheManager`. Sử dụng `@Cacheable` để giảm tải Database khi tra cứu danh sách đơn hàng (Read-Heavy), và `@CacheEvict` để xóa cache cũ khi có đơn hàng mới hoặc khi thanh toán.
+*   **Payment Mock API:** Xây dựng luồng giả lập thanh toán, cho phép chuyển đổi trạng thái đơn hàng từ `PENDING` sang `PAID` và đồng bộ hóa với hệ thống Timeout (Saga/Delayed Message).
 ---
 *Ghi chú: File này được tạo ra nhằm mục đích theo dõi tiến độ và cung cấp bối cảnh (context) cho các phiên làm việc tiếp theo.*
