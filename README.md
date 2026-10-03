@@ -10,7 +10,7 @@ Dự án này không chỉ là CRUD thông thường, mà tập trung giải quy
 * **Tối ưu Read-Heavy (Caching):** Ứng dụng Spring Cache (`@Cacheable`, `@CacheEvict`) để giảm tải tối đa cho PostgreSQL khi người dùng F5 xem lịch sử mua vé liên tục.
 
 ## 🛠️ Tech Stack
-* **Framework:** Java 21, Spring Boot 3.x, Spring Data JPA, Spring Cache.
+* **Framework:** Java 25, Spring Boot 4.1.1, Spring Data JPA, Spring Cache.
 * **Database:** PostgreSQL (Lưu trữ đơn hàng), Redis (Tồn kho, Caching).
 * **Message Broker:** RabbitMQ (kèm plugin rabbitmq_delayed_message_exchange).
 * **Infrastructure:** Docker, Docker Compose.
